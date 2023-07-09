@@ -29,19 +29,22 @@ if (!$conn) {
 pg_set_client_encoding($conn, "utf8");
 
 // Procesar la solicitud y generar respuestas
-
-// Obtener todos los libros
+//optirne todos lo libros
 if ($method === 'GET' && $route === 'libros') {
     $query = "SELECT * FROM libro";
     $result = pg_query($conn, $query);
     
-    $libros = array();
+    if ($result) {
+        $libros = array();
     
-    while ($row = pg_fetch_assoc($result)) {
-        $libros[] = $row;
+        while ($row = pg_fetch_assoc($result)) {
+            $libros[] = $row;
+        }
+    
+        sendResponse(200, $libros);
+    } else {
+        sendResponse(500, ['error' => 'Error al obtener los libros']);
     }
-    
-    sendResponse(200, $libros);
 }
 
 // Obtener un libro específico
@@ -59,32 +62,32 @@ elseif ($method === 'GET' && preg_match('/^libros\/(\d+)$/', $route, $matches)) 
     }
 }
 
-// Crear un nuevo libro
+//crea nuevo libro
 elseif ($method === 'POST' && $route === 'libros') {
     $input = json_decode(file_get_contents('php://input'), true);
 
-    // Validar los campos obligatorios del libro
-    $nombreLibro = pg_escape_string($conn, $input['nombrelibro']);
-    $isbn = pg_escape_string($conn, $input['isbn']);
-    $idAutor = pg_escape_string($conn, $input['idautor']);
-    $imagen = pg_escape_string($conn, $input['imagen']);
-    $descripcion = pg_escape_string($conn, $input['descripcion']);
+    $nombreLibro = isset($input['nombrelibro']) ? pg_escape_string($conn, $input['nombrelibro']) : null;
+    $isbn = isset($input['isbn']) ? pg_escape_string($conn, $input['isbn']) : null;
+    $idAutor = isset($input['idautor']) ? pg_escape_string($conn, $input['idautor']) : null;
+    $imagen = isset($input['imagen']) ? pg_escape_string($conn, $input['imagen']) : null;
+    $descripcion = isset($input['descripcion']) ? pg_escape_string($conn, $input['descripcion']) : null;
     
-    if (!$nombrelibro || !$isbn || !$idAutor || $imagen  || $descripcion) {
+    if (empty($nombreLibro) || empty($isbn) || empty($idAutor) || empty($imagen) || empty($descripcion)) {
         sendResponse(400, ['error' => 'Datos incompletos o no válidos']);
     }
     
-    // Insertar el nuevo libro en la base de datos
-    $query = "INSERT INTO libro (nombrelibro, isbn, idautor, imagen, descripcion) VALUES ('$nombreLibro', '$isbn', $idAutor, '$imagen', '$descripcion')";
-    $result = pg_query($conn, $query);
+    $query = "INSERT INTO libro (nombrelibro, isbn, idautor, imagen, descripcion) VALUES ($1, $2, $3, $4, $5)";
+    $params = array($nombreLibro, $isbn, $idAutor, $imagen, $descripcion);
+    $result = pg_query_params($conn, $query, $params);
     
     if ($result) {
-        $libroId = pg_last_oid($conn);
+        $libroId = pg_last_oid($result);
         sendResponse(201, ['id' => $libroId, 'message' => 'Libro creado correctamente']);
     } else {
         sendResponse(500, ['error' => 'Error al crear el libro']);
     }
 }
+
 
 // Actualizar un libro
 elseif ($method === 'PUT' && preg_match('/^libros\/(\d+)$/', $route, $matches)) {
