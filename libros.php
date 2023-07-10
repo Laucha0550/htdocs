@@ -2,9 +2,9 @@
 // libros.php
 
 // Establecer encabezados para permitir el acceso desde diferentes dominios
-header('Access-Control-Allow-Origin: *');
-header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE');
-header('Access-Control-Allow-Headers: Content-Type');
+header('Access-Control-Allow-Origin: http://localhost:3000');
+header('Access-Control-Allow-Methods: GET, POST');
+//header('Access-Control-Allow-Headers: Content-Type');
 
 // Verificar el método de solicitud HTTP
 $method = $_SERVER['REQUEST_METHOD'];
