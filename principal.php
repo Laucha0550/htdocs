@@ -1,10 +1,14 @@
 <?php
 // archivo_principal.php
 // Establecer encabezados para permitir el acceso desde diferentes dominios
-header('Access-Control-Allow-Origin: *');
-header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE');
-header('Access-Control-Allow-Headers: Content-Type');
-
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+    // Configurar los encabezados CORS para las solicitudes de pre-vuelo OPTIONS
+    header('Access-Control-Allow-Origin: *');
+    header('Access-Control-Allow-Methods: POST, GET');
+    header('Access-Control-Allow-Headers: Content-Type');
+    header('HTTP/1.1 200 OK');
+    exit();
+  }
 // Conexión a la base de datos
 $host = "localhost";
 $port = "5432";
