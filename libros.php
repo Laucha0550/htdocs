@@ -76,12 +76,14 @@ elseif ($method === 'POST' && $route === 'libros') {
         sendResponse(400, ['error' => 'Datos incompletos o no válidos']);
     }
     
-    $query = "INSERT INTO libro (nombrelibro, isbn, idautor, imagen, descripcion) VALUES ($1, $2, $3, $4, $5)";
+    $query = "INSERT INTO libro (nombrelibro, isbn, idautor, imagen, descripcion) VALUES ($1, $2, $3, $4, $5) RETURNING idlibro";
     $params = array($nombreLibro, $isbn, $idAutor, $imagen, $descripcion);
     $result = pg_query_params($conn, $query, $params);
     
     if ($result) {
-        $libroId = pg_last_oid($result);
+        $row = pg_fetch_assoc($result);
+        $libroId = $row['idlibro'];
+        //$libroId = pg_last_oid($result);
         sendResponse(201, ['id' => $libroId, 'message' => 'Libro creado correctamente']);
     } else {
         sendResponse(500, ['error' => 'Error al crear el libro']);
