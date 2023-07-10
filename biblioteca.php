@@ -162,7 +162,23 @@ if ($result) {
 } else {
     echo "Error al crear la tabla 'Stock': " . pg_last_error($conn);
 }
+//Crea tabla pedido
+$sql = "CREATE TABLE pedido (
+    idpedidos SERIAL PRIMARY KEY,
+    idpersona INT NOT NULL,
+    idlibro INT NOT NULL,
+    estado VARCHAR(50) NOT NULL,
+    observacion VARCHAR(200),
+    FOREIGN KEY (idpersona) REFERENCES persona (IDPersona),
+    FOREIGN KEY (idlibro) REFERENCES libro (IDLibro)
+)";
+$result = pg_query($conn, $sql);
 
+if ($result) {
+    echo "La tabla 'pedido' se ha creado correctamente.\n";
+} else {
+    echo "Error al crear la tabla 'pedido': " . pg_last_error($conn);
+}
 // Crear la tabla de Prestamo
 $sql = "CREATE TABLE Prestamo (
     IDPrestamo SERIAL PRIMARY KEY,
@@ -184,6 +200,8 @@ if ($result) {
 } else {
     echo "Error al crear la tabla 'Prestamo': " . pg_last_error($conn);
 }
+
+
 
 pg_close($conn);
 ?>

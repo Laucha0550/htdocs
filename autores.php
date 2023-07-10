@@ -44,6 +44,7 @@ if ($method === 'GET' && $route === 'autores') {
     sendResponse(200, $autores);
 }
 
+
 // Obtener un autor específico
 elseif ($method === 'GET' && preg_match('/^autores\/(\d+)$/', $route, $matches)) {
     $id = $matches[1];
