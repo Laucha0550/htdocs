@@ -61,6 +61,9 @@ if (strpos($route, 'personas') === 0) {
 } elseif (strpos($route, 'libros') === 0) {
     // Incluir el archivo libros.php
     include 'libros.php';
+} elseif (strpos($route, 'pedidos') === 0) {
+    // Incluir el archivo pedidos.php
+    include 'pedidos.php';
 } elseif (strpos($route, 'prestamos') === 0) {
     // Incluir el archivo prestamos.php
     include 'prestamos.php';
