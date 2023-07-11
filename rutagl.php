@@ -4,7 +4,7 @@
 // Establecer encabezados para permitir el acceso desde diferentes dominios
 header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE');
-header('Access-Control-Allow-Headers: Content-Type');
+//header('Access-Control-Allow-Headers: Content-Type');
 
 // Verificar el método de solicitud HTTP
 $method = $_SERVER['REQUEST_METHOD'];
@@ -13,32 +13,38 @@ $method = $_SERVER['REQUEST_METHOD'];
 $route = $_GET['route'] ?? '';
 
 // Conexión a la base de datos
-$servername = "localhost";
-$username = "Admin";
-$password = "1234";
+$host = "localhost";
+$port = "5432";
 $dbname = "biblioteca";
+$user = "postgres";
+$password = "admin123";
 
-$conn = new mysqli($servername, $username, $password, $dbname);
+$conn = pg_connect("host=$host port=$port dbname=$dbname user=$user password=$password");
 
-if ($conn->connect_error) {
-    die("Error al conectar con la base de datos: " . $conn->connect_error);
+if (!$conn) {
+    die("Error al conectar con la base de datos: " . pg_last_error());
 }
 
+
 // Establecer la codificación de caracteres
-$conn->set_charset("utf8");
+//$conn->set_charset("utf8");
 
 // Obtener todos los géneros de libros
-if ($method === 'GET' && $route === 'generoslibro') {
-    $query = "SELECT * FROM GeneroLibro";
-    $result = $conn->query($query);
+if ($method === 'GET' && $route === 'rutagl') {
+    $query = "SELECT * FROM generolibro";
+    $result = pg_query($conn, $query);
     
-    $generosLibro = array();
+    if ($result) {
+        $rutagl = array();
     
-    while ($row = $result->fetch_assoc()) {
-        $generosLibro[] = $row;
+        while ($row = pg_fetch_assoc($result)) {
+            $rutagl[] = $row;
+        }
+    
+        sendResponse(200, $rutagl);
+    } else {
+        sendResponse(500, ['error' => 'Error al obtener las rutagl']);
     }
-    
-    sendResponse(200, $generosLibro);
 }
 
 // Obtener los géneros de un libro específico
@@ -63,23 +69,25 @@ elseif ($method === 'GET' && preg_match('/^generoslibro\/(\d+)$/', $route, $matc
 }
 
 // Asignar un género a un libro
-elseif ($method === 'POST' && $route === 'generoslibro') {
+elseif ($method === 'POST' && $route === 'rutagl') {
     $input = json_decode(file_get_contents('php://input'), true);
 
     // Validar los campos obligatorios
-    $idGenero = $conn->real_escape_string($input['idGenero']);
-    $idLibro = $conn->real_escape_string($input['idLibro']);
+    $idGenero = isset($input['idgenero']) ? pg_escape_string($conn, $input['idgenero']) : null;
+    $idLibro = isset($input['idlibro']) ? pg_escape_string($conn, $input['idlibro']) : null;
     
     if (!$idGenero || !$idLibro) {
         sendResponse(400, ['error' => 'Datos incompletos o no válidos']);
     }
     
     // Insertar la relación en la tabla GeneroLibro
-    $query = "INSERT INTO GeneroLibro (IDGenero, IDLibro) VALUES ($idGenero, $idLibro)";
-    $result = $conn->query($query);
+    $query = "INSERT INTO generolibro (idgenero, idlibro) VALUES ($1, $2) RETURNING idgenerolibro";
+    $params = array($idGenero, $idLibro);
+    $result = pg_query_params($conn, $query, $params);
     
-    if ($result === true) {
-        $generoLibroId = $conn->insert_id;
+    if ($result) {
+        $row = pg_fetch_assoc($result);
+        $generoLibroId = $row['idgenerolibro'];
         sendResponse(201, ['id' => $generoLibroId, 'message' => 'Género asignado correctamente']);
     } else {
         sendResponse(500, ['error' => 'Error al asignar el género']);
@@ -132,6 +140,6 @@ function sendResponse($statusCode, $data) {
 }
 
 // Cerrar la conexión a la base de datos
-$conn->close();
+pg_close($conn);
 
 ?>

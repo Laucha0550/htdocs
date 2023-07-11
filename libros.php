@@ -47,6 +47,19 @@ if ($method === 'GET' && $route === 'libros') {
     }
 }
 
+elseif ($method === 'GET' && $route === 'ultid') {
+    $query = "SELECT idlibro FROM libro ORDER BY idlibro DESC LIMIT 1";
+    $result = pg_query($conn, $query);
+    
+    if (pg_num_rows($result) === 1) {
+        $row = pg_fetch_assoc($result);
+        $idlibro = $row['idlibro'];
+        sendResponse(200, ['idlibro' => $idlibro]);
+    } else {
+        sendResponse(404, ['error' => 'No se encontraron libros']);
+    }
+}
+
 // Obtener un libro específico
 elseif ($method === 'GET' && preg_match('/^libros\/(\d+)$/', $route, $matches)) {
     $id = $matches[1];

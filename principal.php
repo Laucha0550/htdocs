@@ -55,9 +55,9 @@ if (strpos($route, 'personas') === 0) {
 } elseif (strpos($route, 'generos') === 0) {
     // Incluir el archivo genero.php
     include 'generos.php';
-} elseif (strpos($route, 'generolibro') === 0) {
-    // Incluir el archivo generolibro.php
-    include 'generolibro.php';
+} elseif (strpos($route, 'rutagl') === 0) {
+    // Incluir el archivo generoslibros.php
+    include 'rutagl.php';
 } elseif (strpos($route, 'libros') === 0) {
     // Incluir el archivo libros.php
     include 'libros.php';
@@ -73,6 +73,9 @@ if (strpos($route, 'personas') === 0) {
 } elseif (strpos($route, 'usuarios') === 0) {
     // Incluir el archivo usuarios.php
     include 'usuarios.php';
+} elseif (strpos($route, 'ultid') === 0) {
+    // llamada ultimo id de libro
+    include 'libros.php';
 } else {
     echo($route);
     sendResponse(404, ['error' => 'Ruta no encontrada']);
