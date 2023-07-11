@@ -124,6 +124,12 @@ elseif ($method === 'DELETE' && preg_match('/^usuarios\/(\d+)$/', $route, $match
 else {
     sendResponse(404, ['error' => 'Ruta no encontrada']);
 }
+function sendResponse($statusCode, $data) {
+    http_response_code($statusCode);
+    header('Content-Type: application/json');
+    echo json_encode($data);
+    exit;
+}
 
 // Cerrar la conexión a la base de datos
 pg_close($conn);
