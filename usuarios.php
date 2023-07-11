@@ -64,7 +64,7 @@ elseif ($method === 'POST' && $route === 'usuarios') {
     $input = json_decode(file_get_contents('php://input'), true);
 
     // Validar los campos obligatorios del usuario
-    $nombreUsuario = pg_escape_string($conn, $input['nombreUsuario']);
+    $nombreUsuario = pg_escape_string($conn, $input['nombreusuario']);
     $contrasena = pg_escape_string($conn, $input['contrasena']);
     
     if (!$nombreUsuario || !$contrasena) {
@@ -72,7 +72,7 @@ elseif ($method === 'POST' && $route === 'usuarios') {
     }
     
     // Insertar el nuevo usuario en la base de datos
-    $query = "INSERT INTO Usuario (NombreUsuario, Contrasena) VALUES ('$nombreUsuario', '$contrasena')";
+    $query = "INSERT INTO usuario (nombreusuario, contrasena) VALUES ('$nombreUsuario', '$contrasena')";
     $result = pg_query($conn, $query);
     
     if ($result) {
