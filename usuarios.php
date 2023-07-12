@@ -75,34 +75,7 @@ elseif ($method === 'GET' && preg_match('/^usuarios\/(\d+)$/', $route, $matches)
         sendResponse(404, ['error' => 'Usuario no encontrado']);
     }
 }
-elseif ($method === 'POST' && $route === 'autenticacion') {
-    $input = json_decode(file_get_contents('php://input'), true);
 
-    // Validar los campos obligatorios del usuario
-    $nombreUsuario = pg_escape_string($conn, $input['nombreusuario']);
-    $contrasena = pg_escape_string($conn, $input['contrasena']);
-    
-    if (!$nombreUsuario || !$contrasena) {
-        sendResponse(400, ['error' => 'Datos incompletos o no válidos']);
-    }
-    
-    // Verificar si el usuario y la contraseña coinciden en la base de datos
-    $query = "SELECT * FROM usuario WHERE nombreusuario = '$nombreUsuario' AND contrasena = '$contrasena'";
-    $result = pg_query($conn, $query);
-    
-    if (pg_num_rows($result) === 1) {
-        // Usuario autenticado correctamente
-        $usuario = pg_fetch_assoc($result);
-        
-        // Generar el token de autenticación
-        $token = JWT::encode(['usuarioId' => $usuario['idusuario']], $key);
-        
-        sendResponse(200, ['token' => $token]);
-    } else {
-        // Usuario no autenticado
-        sendResponse(401, ['error' => 'Credenciales inválidas']);
-    }
-}
 // Crear un nuevo usuario
 elseif ($method === 'POST' && $route === 'usuarios') {
     // Verificar el token antes de procesar la solicitud
