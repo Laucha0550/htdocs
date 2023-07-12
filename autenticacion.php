@@ -1,11 +1,12 @@
 <?php
-// usuarios.php
+// autenticacion.php
+require 'clave.php';
 require 'vendor/autoload.php';
 use Firebase\JWT\JWT;
 
-// Generar una clave secreta
-$length = 16; // Longitud de clave en bytes (128 bits)
-$key = bin2hex(random_bytes($length));
+
+
+$key = SECRET_KEY;
 
 function verifyToken($token) {
     global $key; // Utilizar la clave secreta generada
