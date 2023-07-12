@@ -39,9 +39,6 @@ $route = isset($params['route']) ? $params['route'] : '';
 if (strpos($route, 'personas') === 0) {
     // Incluir el archivo personas.php
     include 'personas.php';
-} elseif (strpos($route, 'usuarios') === 0) {
-    // Incluir el archivo usuarios.php
-    include 'usuarios.php';
 } elseif (strpos($route, 'multas') === 0) {
     // Incluir el archivo multas.php
     include 'multas.php';
