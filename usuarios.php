@@ -106,7 +106,7 @@ elseif ($method === 'POST' && $route === 'usuarios') {
         sendResponse(500, ['error' => 'Error al crear el usuario']);
     }
 }
-elseif ($method === 'POST' && $route === 'usuarios/authenticate') {
+elseif ($method === 'POST' && $route === 'autenticacion') {
     $input = json_decode(file_get_contents('php://input'), true);
 
     // Validar los campos obligatorios del usuario
@@ -118,7 +118,7 @@ elseif ($method === 'POST' && $route === 'usuarios/authenticate') {
     }
     
     // Verificar si el usuario y la contraseña coinciden en la base de datos
-    $query = "SELECT * FROM Usuario WHERE nombreusuario = '$nombreUsuario' AND contrasena = '$contrasena'";
+    $query = "SELECT * FROM usuario WHERE nombreusuario = '$nombreUsuario' AND contrasena = '$contrasena'";
     $result = pg_query($conn, $query);
     
     if (pg_num_rows($result) === 1) {
@@ -126,7 +126,7 @@ elseif ($method === 'POST' && $route === 'usuarios/authenticate') {
         $usuario = pg_fetch_assoc($result);
         
         // Generar el token de autenticación
-        $token = JWT::encode(['usuarioId' => $usuario['IDUsuario']], $key);
+        $token = JWT::encode(['usuarioId' => $usuario['idusuario']], $key);
         
         sendResponse(200, ['token' => $token]);
     } else {

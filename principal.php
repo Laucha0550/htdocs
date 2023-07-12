@@ -75,7 +75,7 @@ if (strpos($route, 'personas') === 0) {
 } elseif (strpos($route, 'usuarios') === 0) {
     // Incluir el archivo usuarios.php
     include 'usuarios.php';
-} elseif (strpos($route, 'usuarios/authenticate') === 0) {
+} elseif (strpos($route, 'autenticacion') === 0) {
     // Incluir el archivo usuarios.php
     include 'usuarios.php';
 } elseif (strpos($route, 'ultid') === 0) {
