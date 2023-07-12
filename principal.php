@@ -1,6 +1,8 @@
 <?php
 // archivo_principal.php
 // Establecer encabezados para permitir el acceso desde diferentes dominios
+require 'vendor/autoload.php';
+use Firebase\JWT\JWT;
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     // Configurar los encabezados CORS para las solicitudes de pre-vuelo OPTIONS
     header('Access-Control-Allow-Origin: *');
@@ -71,6 +73,9 @@ if (strpos($route, 'personas') === 0) {
     // Incluir el archivo stocks.php
     include 'stocks.php';
 } elseif (strpos($route, 'usuarios') === 0) {
+    // Incluir el archivo usuarios.php
+    include 'usuarios.php';
+} elseif (strpos($route, 'usuarios/authenticate') === 0) {
     // Incluir el archivo usuarios.php
     include 'usuarios.php';
 } elseif (strpos($route, 'ultid') === 0) {

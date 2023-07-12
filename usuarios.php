@@ -1,5 +1,22 @@
 <?php
 // usuarios.php
+require 'vendor/autoload.php';
+use Firebase\JWT\JWT;
+
+// Generar una clave secreta
+$length = 16; // Longitud de clave en bytes (128 bits)
+$key = bin2hex(random_bytes($length));
+
+function verifyToken($token) {
+    global $key; // Utilizar la clave secreta generada
+
+    try {
+        $decoded = JWT::decode($token, $key, array('HS256'));
+        return true;
+    } catch (Exception $e) {
+        return false;
+    }
+}
 
 // Establecer encabezados para permitir el acceso desde diferentes dominios
 header('Access-Control-Allow-Origin: *');
@@ -61,6 +78,13 @@ elseif ($method === 'GET' && preg_match('/^usuarios\/(\d+)$/', $route, $matches)
 
 // Crear un nuevo usuario
 elseif ($method === 'POST' && $route === 'usuarios') {
+    // Verificar el token antes de procesar la solicitud
+    $authorizationHeader = $_SERVER['HTTP_AUTHORIZATION'] ?? '';
+    $token = str_replace('Bearer ', '', $authorizationHeader);
+
+    if (!verifyToken($token)) {
+        sendResponse(401, ['error' => 'Token inválido']);
+    }
     $input = json_decode(file_get_contents('php://input'), true);
 
     // Validar los campos obligatorios del usuario
@@ -80,6 +104,34 @@ elseif ($method === 'POST' && $route === 'usuarios') {
         sendResponse(201, ['id' => $usuarioId, 'message' => 'Usuario creado correctamente']);
     } else {
         sendResponse(500, ['error' => 'Error al crear el usuario']);
+    }
+}
+elseif ($method === 'POST' && $route === 'usuarios/authenticate') {
+    $input = json_decode(file_get_contents('php://input'), true);
+
+    // Validar los campos obligatorios del usuario
+    $nombreUsuario = pg_escape_string($conn, $input['nombreusuario']);
+    $contrasena = pg_escape_string($conn, $input['contrasena']);
+    
+    if (!$nombreUsuario || !$contrasena) {
+        sendResponse(400, ['error' => 'Datos incompletos o no válidos']);
+    }
+    
+    // Verificar si el usuario y la contraseña coinciden en la base de datos
+    $query = "SELECT * FROM Usuario WHERE nombreusuario = '$nombreUsuario' AND contrasena = '$contrasena'";
+    $result = pg_query($conn, $query);
+    
+    if (pg_num_rows($result) === 1) {
+        // Usuario autenticado correctamente
+        $usuario = pg_fetch_assoc($result);
+        
+        // Generar el token de autenticación
+        $token = JWT::encode(['usuarioId' => $usuario['IDUsuario']], $key);
+        
+        sendResponse(200, ['token' => $token]);
+    } else {
+        // Usuario no autenticado
+        sendResponse(401, ['error' => 'Credenciales inválidas']);
     }
 }
 
@@ -124,6 +176,7 @@ elseif ($method === 'DELETE' && preg_match('/^usuarios\/(\d+)$/', $route, $match
 else {
     sendResponse(404, ['error' => 'Ruta no encontrada']);
 }
+
 function sendResponse($statusCode, $data) {
     http_response_code($statusCode);
     header('Content-Type: application/json');
