@@ -78,6 +78,18 @@ if (strpos($route, 'personas') === 0) {
 } elseif (strpos($route, 'ultid') === 0) {
     // llamada ultimo id de libro
     include 'libros.php';
+} elseif (strpos($route, 'libautnom') === 0) {
+    // llamada nombre y apellido de autor
+    include 'libros.php';
+} elseif (strpos($route, 'lixgen') === 0) {
+    // llamada lista genero x libro
+    include 'libros.php';
+} elseif (strpos($route, 'cliautnom') === 0) {
+    // llamada lista genero x libro
+    include 'clientes.php';
+} elseif (strpos($route, 'empautnom') === 0) {
+    // llamada lista genero x libro
+    include 'empleados.php';
 } else {
     echo($route);
     sendResponse(404, ['error' => 'Ruta no encontrada']);

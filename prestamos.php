@@ -13,32 +13,37 @@ $method = $_SERVER['REQUEST_METHOD'];
 $route = $_GET['route'] ?? '';
 
 // Conexión a la base de datos
-$servername = "localhost";
-$username = "Admin";
-$password = "1234";
+$host = "localhost";
+$port = "5432";
 $dbname = "biblioteca";
+$user = "postgres";
+$password = "admin123";
 
-$conn = new mysqli($servername, $username, $password, $dbname);
+$conn = pg_connect("host=$host port=$port dbname=$dbname user=$user password=$password");
 
-if ($conn->connect_error) {
-    die("Error al conectar con la base de datos: " . $conn->connect_error);
+if (!$conn) {
+    die("Error al conectar con la base de datos: " . pg_last_error());
 }
 
 // Establecer la codificación de caracteres
-$conn->set_charset("utf8");
+pg_set_client_encoding($conn, "utf8");
 
 // Obtener todos los préstamos
 if ($method === 'GET' && $route === 'prestamos') {
     $query = "SELECT * FROM Prestamo";
-    $result = $conn->query($query);
+    $result = pg_query($conn, $query);
     
-    $prestamos = array();
+    if ($result) {
+        $prestamos = array();
     
-    while ($row = $result->fetch_assoc()) {
-        $prestamos[] = $row;
+        while ($row = pg_fetch_assoc($result)) {
+            $prestamos[] = $row;
+        }
+    
+        sendResponse(200, $prestamos);
+    } else {
+        sendResponse(500, ['error' => 'Error al obtener los prestamos']);
     }
-    
-    sendResponse(200, $prestamos);
 }
 
 // Obtener un préstamo específico
@@ -60,27 +65,40 @@ elseif ($method === 'GET' && preg_match('/^prestamos\/(\d+)$/', $route, $matches
 elseif ($method === 'POST' && $route === 'prestamos') {
     $input = json_decode(file_get_contents('php://input'), true);
 
-    $idStock = $conn->real_escape_string($input['id_stock']);
-    $idCliente = $conn->real_escape_string($input['id_cliente']);
-    $idEmpleado = $conn->real_escape_string($input['id_empleado']);
-    $fechaPrestamo = $conn->real_escape_string($input['fecha_prestamo']);
-    $fechaDevolucion = $conn->real_escape_string($input['fecha_devolucion']);
+    $idStock = isset($input['idstock']) ? pg_escape_string($conn, $input['idstock']) : null;
+    $idCliente = isset($input['idcliente']) ? pg_escape_string($conn, $input['idcliente']) : null;
+    $idEmpleado = isset($input['idempleado']) ? pg_escape_string($conn, $input['idempleado']) : null;
+    $fechaPrestamo = isset($input['fechaprestamo']) ? pg_escape_string($conn, $input['fechaprestamo']) : null;
+    $fechaDevolucion = isset($input['fechadevolucion']) ? pg_escape_string($conn, $input['fechadevolucion']) : null;
+    $fechaEntrega = isset($input['fechaentrega']) ? pg_escape_string($conn, $input['fechaentrega']) : null;
+    $idMulta = isset($input['idmulta']) ? pg_escape_string($conn, $input['idmulta']) : null;
     
     // Verificar que los campos obligatorios no estén vacíos
-    if (!$idStock || !$idCliente || !$idEmpleado || !$fechaPrestamo || !$fechaDevolucion) {
+    if (empty($idStock) || empty($idCliente) || empty($idEmpleado) || empty($fechaPrestamo) || empty($fechaDevolucion)) {
         sendResponse(400, ['error' => 'Datos incompletos o no válidos']);
     }
     
-    $query = "INSERT INTO Prestamo (IDStock, IDCliente, IDEmpleado, FechaPrestamo, FechaDevolucion) VALUES ('$idStock', '$idCliente', '$idEmpleado', '$fechaPrestamo', '$fechaDevolucion')";
-    $result = $conn->query($query);
+    // Convertir las fechas al formato deseado en tu base de datos
+    $fechaPrestamo = date('Y-m-d H:i:s', strtotime($fechaPrestamo));
+    $fechaDevolucion = date('Y-m-d H:i:s', strtotime($fechaDevolucion));
     
-    if ($result === true) {
-        $prestamoId = $conn->insert_id;
+    // Verificar si fechaEntrega y idMulta están vacíos y asignar NULL en su lugar
+    $fechaEntrega = $fechaEntrega !== '' ? date('Y-m-d H:i:s', strtotime($fechaEntrega)) : null;
+    $idMulta = $idMulta !== '' ? $idMulta : null;
+    
+    $query = "INSERT INTO prestamo (idstock, idcliente, idempleado, fechaprestamo, fechadevolucion, fechaentrega, idmulta) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING idprestamo";
+    $params = array($idStock, $idCliente, $idEmpleado, $fechaPrestamo, $fechaDevolucion, $fechaEntrega, $idMulta);
+    $result = pg_query_params($conn, $query, $params);
+    
+    if ($result) {
+        $row = pg_fetch_assoc($result);
+        $prestamoId = $row['idprestamo'];
         sendResponse(201, ['id' => $prestamoId, 'message' => 'Préstamo creado correctamente']);
     } else {
         sendResponse(500, ['error' => 'Error al crear el préstamo']);
     }
 }
+
 
 // Actualizar un préstamo
 elseif ($method === 'PUT' && preg_match('/^prestamos\/(\d+)$/', $route, $matches)) {

@@ -44,6 +44,26 @@ if ($method === 'GET' && $route === 'clientes') {
     sendResponse(200, $clientes);
 }
 
+elseif ($method === 'GET' && $route === 'cliautnom') {
+    $query = "SELECT c.*, CONCAT(p.nombre, ' ', p.apellido) AS nombrecliente
+              FROM cliente c
+              INNER JOIN persona p ON c.idpersona = p.idpersona";
+    $result = pg_query($conn, $query);
+    
+    if ($result) {
+        $clientes = array();
+    
+        while ($row = pg_fetch_assoc($result)) {
+            $clientes[] = $row;
+        }
+    
+        sendResponse(200, $clientes);
+    } else {
+        sendResponse(500, ['error' => 'Error al obtener los clientes']);
+    }
+}
+
+
 // Obtener un cliente específico
 elseif ($method === 'GET' && preg_match('/^clientes\/(\d+)$/', $route, $matches)) {
     $id = $matches[1];

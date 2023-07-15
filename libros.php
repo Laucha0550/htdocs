@@ -47,6 +47,62 @@ if ($method === 'GET' && $route === 'libros') {
     }
 }
 
+elseif ($method === 'GET' && $route === 'libautnom') {
+    $query = "SELECT l.*, CONCAT(p.nombre, ' ', p.apellido) AS nomautor
+              FROM libro l
+              INNER JOIN autor a ON l.idautor = a.idautor
+              INNER JOIN persona p ON a.idpersona = p.idpersona";
+    $result = pg_query($conn, $query);
+    
+    if ($result) {
+        $libros = array();
+    
+        while ($row = pg_fetch_assoc($result)) {
+            $row['nomautor'] = $row['nomautor']; // Actualizar el campo 'nombreautor' en el resultado
+            $libros[] = $row;
+        }
+    
+        sendResponse(200, $libros);
+    } else {
+        sendResponse(500, ['error' => 'Error al obtener los libros']);
+    }
+}
+
+elseif ($method === 'POST' && $route === 'lixgen') {
+    // Obtén el ID del género seleccionado
+    $idgenero = pg_escape_string($conn, $_POST['idgenero']);
+    echo $idgenero; // Verificar el ID del género en el backend
+
+    // Consulta SQL para obtener los libros por género
+    $query = "SELECT l.*
+              FROM libro l
+              INNER JOIN generolibro gl ON l.idlibro = gl.idlibro
+              INNER JOIN genero g ON gl.idgenero = g.idgenero
+              WHERE g.idgenero = $1"; // Usamos $1 como marcador de posición para el parámetro
+
+    // Preparamos la consulta con el marcador de posición
+    $stmt = pg_prepare($conn, "query_lixgen", $query);
+    
+    if (!empty($idgenero)) {
+        // Ejecutar la consulta solo si $idgenero no está vacío
+        $result = pg_execute($conn, "query_lixgen", array($idgenero));
+    
+        if ($result) {
+            $libros = array();
+        
+            while ($row = pg_fetch_assoc($result)) {
+                $libros[] = $row;
+            }
+        
+            sendResponse(200, $libros);
+        } else {
+            sendResponse(500, ['error' => 'Error al obtener los libros por género']);
+        }
+    } else {
+        sendResponse(500, ['error' => 'Error al preparar la consulta']);
+    }
+}
+
 elseif ($method === 'GET' && $route === 'ultid') {
     $query = "SELECT idlibro FROM libro ORDER BY idlibro DESC LIMIT 1";
     $result = pg_query($conn, $query);

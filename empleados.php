@@ -13,33 +13,57 @@ $method = $_SERVER['REQUEST_METHOD'];
 $route = $_GET['route'] ?? '';
 
 // Conexión a la base de datos
-$servername = "localhost";
-$username = "Admin";
-$password = "1234";
+$host = "localhost";
+$port = "5432";
 $dbname = "biblioteca";
+$user = "postgres";
+$password = "admin123";
 
-$conn = new mysqli($servername, $username, $password, $dbname);
+$conn = pg_connect("host=$host port=$port dbname=$dbname user=$user password=$password");
 
-if ($conn->connect_error) {
-    die("Error al conectar con la base de datos: " . $conn->connect_error);
+if (!$conn) {
+    die("Error al conectar con la base de datos: " . pg_last_error());
 }
 
 // Establecer la codificación de caracteres
-$conn->set_charset("utf8");
+pg_set_client_encoding($conn, "utf8");
 
 
 // Obtener todos los empleados
 if ($method === 'GET' && $route === 'empleados') {
     $query = "SELECT * FROM Empleado";
-    $result = $conn->query($query);
+    $result = pg_query($conn, $query);
     
-    $empleados = array();
+    if ($result) {
+        $empleados = array();
     
-    while ($row = $result->fetch_assoc()) {
-        $empleados[] = $row;
+        while ($row = pg_fetch_assoc($result)) {
+            $empleados[] = $row;
+        }
+    
+        sendResponse(200, $empleados);
+    } else {
+        sendResponse(500, ['error' => 'Error al obtener los empleados']);
     }
+}
+
+elseif ($method === 'GET' && $route === 'empautnom') {
+    $query = "SELECT e.*, CONCAT(p.nombre, ' ', p.apellido) AS nombreempleado
+              FROM empleado e
+              INNER JOIN persona p ON e.idpersona = p.idpersona";
+    $result = pg_query($conn, $query);
     
-    sendResponse(200, $empleados);
+    if ($result) {
+        $clientes = array();
+    
+        while ($row = pg_fetch_assoc($result)) {
+            $clientes[] = $row;
+        }
+    
+        sendResponse(200, $clientes);
+    } else {
+        sendResponse(500, ['error' => 'Error al obtener los clientes']);
+    }
 }
 
 // Obtener un empleado específico

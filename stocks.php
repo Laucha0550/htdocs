@@ -4,7 +4,7 @@
 // Establecer encabezados para permitir el acceso desde diferentes dominios
 header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE');
-header('Access-Control-Allow-Headers: Content-Type');
+//header('Access-Control-Allow-Headers: Content-Type');
 
 // Verificar el método de solicitud HTTP
 $method = $_SERVER['REQUEST_METHOD'];
@@ -13,32 +13,37 @@ $method = $_SERVER['REQUEST_METHOD'];
 $route = $_GET['route'] ?? '';
 
 // Conexión a la base de datos
-$servername = "localhost";
-$username = "Admin";
-$password = "1234";
+$host = "localhost";
+$port = "5432";
 $dbname = "biblioteca";
+$user = "postgres";
+$password = "admin123";
 
-$conn = new mysqli($servername, $username, $password, $dbname);
+$conn = pg_connect("host=$host port=$port dbname=$dbname user=$user password=$password");
 
-if ($conn->connect_error) {
-    die("Error al conectar con la base de datos: " . $conn->connect_error);
+if (!$conn) {
+    die("Error al conectar con la base de datos: " . pg_last_error());
 }
 
 // Establecer la codificación de caracteres
-$conn->set_charset("utf8");
+pg_set_client_encoding($conn, "utf8");
 
 // Obtener todos los registros de stock
-if ($method === 'GET' && $route === 'stock') {
+if ($method === 'GET' && $route === 'stocks') {
     $query = "SELECT * FROM Stock";
-    $result = $conn->query($query);
+    $result = pg_query($conn, $query);
     
-    $stock = array();
+    if ($result) {
+        $stocks = array();
     
-    while ($row = $result->fetch_assoc()) {
-        $stock[] = $row;
+        while ($row = pg_fetch_assoc($result)) {
+            $stocks[] = $row;
+        }
+    
+        sendResponse(200, $stocks);
+    } else {
+        sendResponse(500, ['error' => 'Error al obtener los libros']);
     }
-    
-    sendResponse(200, $stock);
 }
 
 // Obtener un registro de stock específico
@@ -57,34 +62,29 @@ elseif ($method === 'GET' && preg_match('/^stock\/(\d+)$/', $route, $matches)) {
 }
 
 // Crear un nuevo registro de stock
-elseif ($method === 'POST' && $route === 'stock') {
+elseif ($method === 'POST' && $route === 'stocks') {
     $input = json_decode(file_get_contents('php://input'), true);
 
-    $idLibro = $conn->real_escape_string($input['IDLibro']);
-    $disponible = $conn->real_escape_string($input['Disponible']);
-    
-    // Verificar si el libro existe
-    $query = "SELECT * FROM Libro WHERE IDLibro = $idLibro";
-    $result = $conn->query($query);
-    
-    if ($result->num_rows !== 1) {
-        sendResponse(404, ['error' => 'Libro no encontrado']);
+    $idlibro = isset($input['idlibro']) ? pg_escape_string($conn, $input['idlibro']) : null;
+    $disponible = isset($input['disponible']) ? (bool) $input['disponible'] : false;
+
+    if (empty($idlibro) || !is_bool($disponible)) {
+        sendResponse(400, ['error' => 'Datos incompletos o no válidos']);
     }
     
-    if ($disponible !== '0' && $disponible !== '1') {
-        sendResponse(400, ['error' => 'Valor de Disponible no válido']);
-    }
+    $query = "INSERT INTO Stock (idlibro, disponible) VALUES ($1, $2) RETURNING idstock";
+    $params = array($idlibro, $disponible);
+    $result = pg_query_params($conn, $query, $params);
     
-    $query = "INSERT INTO Stock (IDLibro, Disponible) VALUES ('$idLibro', '$disponible')";
-    $result = $conn->query($query);
-    
-    if ($result === true) {
-        $stockId = $conn->insert_id;
-        sendResponse(201, ['id' => $stockId, 'message' => 'Registro de stock creado correctamente']);
+    if ($result) {
+        $row = pg_fetch_assoc($result);
+        $libroId = $row['idstock'];
+        sendResponse(201, ['id' => $libroId, 'message' => 'Libro creado correctamente']);
     } else {
-        sendResponse(500, ['error' => 'Error al crear el registro de stock']);
+        sendResponse(500, ['error' => 'Error al crear el libro']);
     }
 }
+
 
 // Actualizar un registro de stock
 elseif ($method === 'PUT' && preg_match('/^stock\/(\d+)$/', $route, $matches)) {
