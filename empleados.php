@@ -13,7 +13,7 @@ $method = $_SERVER['REQUEST_METHOD'];
 $route = $_GET['route'] ?? '';
 
 // Conexión a la base de datos
-$host = "localhost";
+$host = "biblioteca23.crpl8nkfotjs.us-east-2.rds.amazonaws.com";
 $port = "5432";
 $dbname = "biblioteca";
 $user = "postgres";

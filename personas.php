@@ -8,7 +8,7 @@ header('Access-Control-Allow-Methods: GET, POST');
 //header('Access-Control-Allow-Headers: Content-Type');
 
 // Conexión a la base de datos
-$host = "localhost";
+$host = "biblioteca23.crpl8nkfotjs.us-east-2.rds.amazonaws.com";
 $port = "5432";
 $dbname = "biblioteca";
 $user = "postgres";
