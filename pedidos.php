@@ -13,7 +13,7 @@ $method = $_SERVER['REQUEST_METHOD'];
 $route = $_GET['route'] ?? '';
 
 // Conexión a la base de datos
-$host = "biblioteca23.crpl8nkfotjs.us-east-2.rds.amazonaws.com";
+$host = "localhost";
 $port = "5432";
 $dbname = "biblioteca";
 $user = "postgres";
@@ -71,7 +71,7 @@ elseif ($method === 'POST' && $route === 'pedidos') {
     $estado = isset($input['estado']) ? pg_escape_string($conn, $input['estado']) : null;
     $observacion = isset($input['observacion']) ? pg_escape_string($conn, $input['observacion']) : null;
 
-    if (empty($idpersona) || empty($idlibro) || empty($estado)) {
+    if (empty($idpersona) || empty($idlibro) || empty($estado) || empty($observacion)) {
         sendResponse(400, ['error' => 'Datos incompletos o no válidos']);
     }
 
