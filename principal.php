@@ -6,7 +6,7 @@ use Firebase\JWT\JWT;
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     // Configurar los encabezados CORS para las solicitudes de pre-vuelo OPTIONS
     header('Access-Control-Allow-Origin: *');
-    header('Access-Control-Allow-Methods: POST, GET');
+    header('Access-Control-Allow-Methods: POST, GET, PUT, DELETE');
     header('Access-Control-Allow-Headers: Content-Type');
     header('HTTP/1.1 200 OK');
     exit();

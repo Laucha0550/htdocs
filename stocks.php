@@ -47,19 +47,19 @@ if ($method === 'GET' && $route === 'stocks') {
 }
 
 // Obtener un registro de stock específico
-elseif ($method === 'GET' && preg_match('/^stocks\/(\d+)$/', $route, $matches)) {
-    $id = $matches[1];
+// elseif ($method === 'GET' && preg_match('/^stocks\/(\d+)$/', $route, $matches)) {
+//     $id = $matches[1];
     
-    $query = "SELECT * FROM Stock WHERE IDStock = $id";
-    $result = $conn->query($query);
+//     $query = "SELECT * FROM Stock WHERE IDStock = $id";
+//     $result = $conn->query($query);
     
-    if ($result->num_rows === 1) {
-        $stockItem = $result->fetch_assoc();
-        sendResponse(200, $stockItem);
-    } else {
-        sendResponse(404, ['error' => 'Registro de stock no encontrado']);
-    }
-}
+//     if ($result->num_rows === 1) {
+//         $stockItem = $result->fetch_assoc();
+//         sendResponse(200, $stockItem);
+//     } else {
+//         sendResponse(404, ['error' => 'Registro de stock no encontrado']);
+//     }
+// }
 
 // Crear un nuevo registro de stock
 elseif ($method === 'POST' && $route === 'stocks') {
@@ -103,19 +103,19 @@ if ($method === 'PUT' && preg_match('/^stocks\/(\d+)$/', $route, $matches)) {
         sendResponse(404, ['error' => 'Registro de stock no encontrado']);
     }
 
-    // Verificar si el libro existe
-    $query = "SELECT * FROM libro WHERE idlibro = '$idLibro'";
-    $result = pg_query($conn, $query);
+    // // Verificar si el libro existe
+    // $query = "SELECT * FROM libro WHERE idlibro = '$idLibro'";
+    // $result = pg_query($conn, $query);
 
-    if (pg_num_rows($result) !== 1) {
-        sendResponse(404, ['error' => 'Libro no encontrado']);
-    }
+    // if (pg_num_rows($result) !== 1) {
+    //     sendResponse(404, ['error' => 'Libro no encontrado']);
+    // }
 
-    if ($disponible !== '0' && $disponible !== '1') {
-        sendResponse(400, ['error' => 'Valor de Disponible no válido']);
-    }
+    // if ($disponible !== '0' && $disponible !== '1') {
+    //     sendResponse(400, ['error' => 'Valor de Disponible no válido']);
+    // }
 
-    $query = "UPDATE stock SET idlibro = '$idLibro', disponible = '$disponible' WHERE idstock = $id";
+    $query = "UPDATE stock SET disponible = '$disponible' WHERE idstock = $id";
     $result = pg_query($conn, $query);
 
     if ($result) {

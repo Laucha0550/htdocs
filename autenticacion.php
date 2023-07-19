@@ -4,8 +4,6 @@ require 'clave.php';
 require 'vendor/autoload.php';
 use Firebase\JWT\JWT;
 
-
-
 $key = SECRET_KEY;
 
 function verifyToken($token) {
@@ -20,7 +18,7 @@ function verifyToken($token) {
 }
 
 // Establecer encabezados para permitir el acceso desde diferentes dominios
-header('Access-Control-Allow-Origin: *');
+header('Access-Control-Allow-Origin: http://localhost:3000');
 header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE');
 header('Access-Control-Allow-Headers: Content-Type');
 
@@ -57,7 +55,7 @@ if ($method === 'POST' && $route === 'autenticacion') {
     }
     
     // Verificar si el usuario y la contraseña coinciden en la base de datos
-    $query = "SELECT * FROM usuario WHERE nombreusuario = '$nombreUsuario' AND contrasena = '$contrasena'";
+    $query = "SELECT u.*, e.cargo FROM usuario u LEFT JOIN empleado e ON u.idusuario = e.idusuario WHERE u.nombreusuario = '$nombreUsuario' AND u.contrasena = '$contrasena'";
     $result = pg_query($conn, $query);
     
     if (pg_num_rows($result) === 1) {
@@ -67,7 +65,9 @@ if ($method === 'POST' && $route === 'autenticacion') {
         // Generar el token de autenticación
         $token = JWT::encode(['usuarioId' => $usuario['idusuario']], $key);
         
-        sendResponse(200, ['token' => $token]);
+        // Incluir el valor del campo 'cargo' en la respuesta
+        $cargo = $usuario['cargo'] === 't'; // Convertir a booleano
+        sendResponse(200, ['token' => $token, 'cargo' => $cargo]);
     } else {
         // Usuario no autenticado
         sendResponse(401, ['error' => 'Credenciales inválidas']);
