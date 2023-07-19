@@ -86,7 +86,7 @@ elseif ($method === 'POST' && $route === 'clientes') {
     // Validar los campos obligatorios del cliente
     $idPersona = pg_escape_string($conn, $input['idpersona']);
     $direccion = pg_escape_string($conn, $input['direccion']);
-    $idUsuario = pg_escape_string($conn, $input['idsuario']);
+    $idUsuario = pg_escape_string($conn, $input['idusuario']);
     
     if (!$idPersona || !$direccion || !$idUsuario) {
         sendResponse(400, ['error' => 'Datos incompletos o no válidos']);
